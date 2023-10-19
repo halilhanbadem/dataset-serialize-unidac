@@ -120,6 +120,11 @@ type
     ///   Return in ADataSetDetails all child datasets of ADataSet (Master dataset)
     /// </summary>
     class procedure GetDetailsDatasets(const ADataSet: TDataSet; ADataSetDetails: TList<TDataSet>);
+    /// <summary>
+    ///   Converts all letters, including Turkish characters, to lower.
+    /// </summary>
+    class function LowerCaseAllTurkishWord(data: string): string;
+
   end;
 
 implementation
@@ -150,6 +155,19 @@ begin
   end;
 end;
 {$ENDIF}
+
+//@Added Halil Han BADEM.
+class function TDataSetSerializeUtils.LowerCaseAllTurkishWord(data: string): string;
+begin
+  data := StringReplace(data, 'Ý', 'i', [rfReplaceAll]);
+  data := StringReplace(data, 'I', 'i', [rfReplaceAll]);
+  data := StringReplace(data, 'Ö', 'ö', [rfReplaceAll]);
+  data := StringReplace(data, 'Ü', 'ü', [rfReplaceAll]);
+  data := StringReplace(data, 'Ç', 'ç', [rfReplaceAll]);
+  data := StringReplace(data, 'Þ', 'þ', [rfReplaceAll]);
+  data := StringReplace(data, 'Ð', 'ð', [rfReplaceAll]);
+  Result := LowerCase(data);
+end;
 
 class function TDataSetSerializeUtils.CreateValidIdentifier(const AName: string): string;
 var

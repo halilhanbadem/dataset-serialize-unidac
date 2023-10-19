@@ -22,6 +22,8 @@ object FrmSamples: TFrmSamples
     Align = alClient
     MultiLine = True
     TabOrder = 0
+    ExplicitWidth = 980
+    ExplicitHeight = 560
     object tabDataSet: TTabSheet
       Caption = ' DataSet '
       object Panel7: TPanel
@@ -37,6 +39,8 @@ object FrmSamples: TFrmSamples
         BevelOuter = bvNone
         ParentBackground = False
         TabOrder = 0
+        ExplicitWidth = 972
+        ExplicitHeight = 532
         object Splitter1: TSplitter
           Left = 425
           Top = 0
@@ -58,6 +62,8 @@ object FrmSamples: TFrmSamples
           BevelOuter = bvNone
           ParentBackground = False
           TabOrder = 0
+          ExplicitWidth = 538
+          ExplicitHeight = 532
           object Panel4: TPanel
             Left = 0
             Top = 0
@@ -76,6 +82,7 @@ object FrmSamples: TFrmSamples
             ParentBackground = False
             ParentFont = False
             TabOrder = 0
+            ExplicitWidth = 538
           end
           object memoDataSet: TMemo
             Left = 0
@@ -92,6 +99,8 @@ object FrmSamples: TFrmSamples
             ReadOnly = True
             ScrollBars = ssVertical
             TabOrder = 1
+            ExplicitWidth = 538
+            ExplicitHeight = 507
           end
         end
         object Panel1: TPanel
@@ -108,6 +117,7 @@ object FrmSamples: TFrmSamples
           BevelOuter = bvNone
           ParentBackground = False
           TabOrder = 1
+          ExplicitHeight = 532
           object Panel3: TPanel
             Left = 0
             Top = 0
@@ -192,26 +202,6 @@ object FrmSamples: TFrmSamples
             TitleFont.Height = -11
             TitleFont.Name = 'Tahoma'
             TitleFont.Style = []
-            Columns = <
-              item
-                Expanded = False
-                FieldName = 'ID'
-                Width = 60
-                Visible = True
-              end
-              item
-                Expanded = False
-                FieldName = 'NAME'
-                Title.Caption = 'Name'
-                Width = 150
-                Visible = True
-              end
-              item
-                Expanded = False
-                FieldName = 'COUNTRY'
-                Width = 150
-                Visible = True
-              end>
           end
           object Panel6: TPanel
             Left = 0
@@ -221,6 +211,7 @@ object FrmSamples: TFrmSamples
             Align = alBottom
             BevelOuter = bvNone
             TabOrder = 3
+            ExplicitTop = 497
             object Button4: TButton
               Left = 0
               Top = 0
@@ -752,49 +743,25 @@ object FrmSamples: TFrmSamples
     end
   end
   object dsUsers: TDataSource
-    DataSet = mtUsers
+    DataSet = vtUsers
     Left = 840
     Top = 375
   end
-  object mtUsers: TFDMemTable
-    FetchOptions.AssignedValues = [evMode]
-    FetchOptions.Mode = fmAll
-    ResourceOptions.AssignedValues = [rvSilentMode]
-    ResourceOptions.SilentMode = True
-    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
-    UpdateOptions.CheckRequired = False
-    UpdateOptions.AutoCommitUpdates = True
-    Left = 896
-    Top = 375
-    object mtUsersID: TIntegerField
-      AutoGenerateValue = arAutoInc
-      DisplayLabel = 'Id'
-      FieldName = 'ID'
-    end
-    object mtUsersNAME: TStringField
-      FieldName = 'NAME'
-      Size = 100
-    end
-    object mtUsersCOUNTRY: TStringField
-      DisplayLabel = 'Country'
-      FieldName = 'COUNTRY'
-      Size = 60
-    end
+  object dsEmpty: TDataSource
+    Left = 832
+    Top = 296
   end
-  object mtEmpty: TFDMemTable
-    FetchOptions.AssignedValues = [evMode]
-    FetchOptions.Mode = fmAll
-    ResourceOptions.AssignedValues = [rvSilentMode]
-    ResourceOptions.SilentMode = True
-    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
-    UpdateOptions.CheckRequired = False
-    UpdateOptions.AutoCommitUpdates = True
+  object vtUsers: TVirtualTable
     Left = 776
     Top = 376
-  end
-  object dsEmpty: TDataSource
-    DataSet = mtEmpty
-    Left = 720
-    Top = 376
+    Data = {04000000000000000000}
+    object vtUsersNAME: TWideStringField
+      FieldName = 'NAME'
+      Size = 255
+    end
+    object vtUsersCOUNTRY: TWideStringField
+      FieldName = 'COUNTRY'
+      Size = 255
+    end
   end
 end

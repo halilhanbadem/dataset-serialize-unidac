@@ -18,12 +18,18 @@ uses
   DataSet.Serialize.Language, DataSet.Serialize.Utils;
 
 type
+ TMemoFieldArray = array of string;
+
+type
   TJSONSerialize = class
   private
     FMerging: Boolean;
     FJSONObject: TJSONObject;
     FJSONArray: TJSONArray;
     FOwns: Boolean;
+    FStringFieldSize: Integer;
+    FMemoStringFieldSize: Integer;
+    FMemoStringField: TMemoFieldArray;
     /// <summary>
     ///   Delete all records from dataset.
     /// </summary>
@@ -185,6 +191,18 @@ type
     /// </param>
     procedure ToDataSet(const ADataSet: TDataSet);
     /// <summary>
+    ///   Defines the length for default string field definitions.
+    /// </summary>
+    property StringFieldSize: Integer read FStringFieldSize write FStringFieldSize default 255;
+    /// <summary>
+    ///   Specifies the length for ftMemo or ftWideMemo fields.
+    /// </summary>
+    property StringMemoFieldSize: Integer read FMemoStringFieldSize write FMemoStringFieldSize default 4096;
+    /// <summary>
+    ///   Identify areas here that you know will have problems with length.
+    /// </summary>
+    property MemoFields: TMemoFieldArray read FMemoStringField write FMemoStringField;
+    /// <summary>
     ///   Responsible for destroying the TJSONSerialize class instance.
     /// </summary>
     /// <remarks>
@@ -200,7 +218,7 @@ uses
   Classes, Variants, SysUtils, DateUtils, TypInfo, base64, FmtBCD,
 {$ELSE}
   System.Classes, System.NetEncoding, System.TypInfo, System.DateUtils, System.Generics.Collections,
-  System.Variants, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
+  System.Variants, VirtualTable,
 {$ENDIF}
   DataSet.Serialize.Consts, DataSet.Serialize.Config, DataSet.Serialize.UpdatedStatus;
 
@@ -214,7 +232,6 @@ var
   I: Integer;
   LBookMark: TBookmark;
   {$ELSE}
-  LMasterSource: TDataSource;
   LBooleanValue: Boolean;
   {$ENDIF}
   LNestedDataSet: TDataSet;
@@ -235,7 +252,7 @@ begin
   if not(ADataSet.Active) then
   begin
     {$IF NOT DEFINED(FPC)}
-    if not(ADataSet is TFDMemTable)  then
+    if not(ADataSet is TVirtualTable)  then
       Exit;
     {$ENDIF}
     if ((ADataSet.FieldDefs.Count = 0) and (ADataSet.FieldCount = 0)) then
@@ -243,10 +260,7 @@ begin
     ADataSet.Open;
   end;
 
-  {$IF NOT DEFINED(FPC)}
-  LMasterSource := nil;
-  {$ENDIF}
-  try
+
     {$IF DEFINED(FPC)}
     LObjectState := AJSONObject.Get('object_state', EmptyStr);
     if LObjectState.Trim.IsEmpty then
@@ -264,13 +278,6 @@ begin
       end
       else if not (TUpdateStatus.usUnmodified.ToString = LObjectState) then
       begin
-        {$IF NOT DEFINED(FPC)}
-        if ADataSet.InheritsFrom(TFDDataSet) and Assigned(TFDDataSet(ADataSet).MasterSource) then
-        begin
-          LMasterSource := TFDDataSet(ADataSet).MasterSource;
-          TFDDataSet(ADataSet).MasterSource := nil;
-        end;
-        {$ENDIF}
         LKeyValues := GetKeyValuesDataSet(ADataSet, AJSONObject);
         if (Length(LKeyValues) = 0) or (not ADataSet.Locate(GetKeyFieldsDataSet(ADataSet), VarArrayOf(LKeyValues), [])) then
         begin
@@ -471,12 +478,6 @@ begin
       end;
       ADataSet.Post;
     end;
-  finally
-    {$IF NOT DEFINED(FPC)}
-    if Assigned(LMasterSource) then
-      TFDDataSet(ADataSet).MasterSource := LMasterSource;
-    {$ENDIF}
-  end;
   LDataSetDetails := TList<TDataSet>.Create;
   try
     TDataSetSerializeUtils.GetDetailsDatasets(ADataSet, LDataSetDetails);
@@ -637,8 +638,6 @@ begin
 end;
 
 procedure TJSONSerialize.LoadFieldsFromJSON(const ADataSet: TDataSet; const AJSONObject: TJSONObject);
-const
-  MAX_SIZE_STRING = 4096;
 var
   {$IF DEFINED(FPC)}
   I: Integer;
@@ -654,19 +653,26 @@ begin
   {$ENDIF}
   begin
     LFieldDef := ADataSet.FieldDefs.AddFieldDef;
-    LFieldDef.Name := JSONPairToFieldName({$IF DEFINED(FPC)}AJSONObject.Names[I]{$ELSE}LJSONPair.JsonString.Value{$ENDIF});
+    LFieldDef.Name := TDataSetSerializeUtils.LowerCaseAllTurkishWord(JSONPairToFieldName({$IF DEFINED(FPC)}AJSONObject.Names[I]{$ELSE}LJSONPair.JsonString.Value{$ENDIF}));
     LFieldDef.DataType := TDataSetSerializeUtils.GetDataType({$IF DEFINED(FPC)}AJSONObject.Items[I]{$ELSE}LJSONPair.JsonValue{$ENDIF});
-    if LFieldDef.DataType = ftString then
+    if LFieldDef.DataType in [ftWideString, ftString] then
     begin
-      if {$IF DEFINED(FPC)}AJSONObject.Items[I].IsNull{$ELSE}LJSONPair.Null{$ENDIF} then
-        LFieldDef.Size := MAX_SIZE_STRING
-      else if Length({$IF DEFINED(FPC)}AJSONObject.Items[I].AsString{$ELSE}LJSONPair.JsonValue.Value{$ENDIF}) > MAX_SIZE_STRING then
+      if MatchStr(LFieldDef.Name, FMemoStringField) then
       begin
-        LFieldDef.DataType := ftBlob;
-        LFieldDef.Size := Length({$IF DEFINED(FPC)}AJSONObject.Items[I].AsString{$ELSE}LJSONPair.JsonValue.Value{$ENDIF});
-      end
-      else
-        LFieldDef.Size := MAX_SIZE_STRING;
+        LFieldDef.DataType := ftWideMemo;
+        LFieldDef.Size := FMemoStringFieldSize;
+      end else
+      begin
+        if {$IF DEFINED(FPC)}AJSONObject.Items[I].IsNull{$ELSE}LJSONPair.Null{$ENDIF} then
+          LFieldDef.Size := FStringFieldSize
+        else if Length({$IF DEFINED(FPC)}AJSONObject.Items[I].AsString{$ELSE}LJSONPair.JsonValue.Value{$ENDIF}) > FStringFieldSize then
+        begin
+          LFieldDef.DataType := ftBlob;
+          LFieldDef.Size := Length({$IF DEFINED(FPC)}AJSONObject.Items[I].AsString{$ELSE}LJSONPair.JsonValue.Value{$ENDIF});
+        end
+        else
+          LFieldDef.Size := FStringFieldSize;
+      end;
     end;
   end;
 end;

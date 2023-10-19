@@ -5,16 +5,14 @@ interface
 uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, System.JSON, Vcl.Controls,
   Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.StdCtrls, Data.DB, Vcl.Grids, Vcl.DBGrids, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
-  FireDAC.Comp.DataSet, FireDAC.Comp.Client, DataSet.Serialize;
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, DataSet.Serialize, DataSet.Serialize.Import, MemDS,
+  VirtualTable;
 
 type
   TFrmSamples = class(TForm)
     pclSamples: TPageControl;
     tabDataSet: TTabSheet;
     dsUsers: TDataSource;
-    mtUsers: TFDMemTable;
-    mtUsersID: TIntegerField;
-    mtUsersCOUNTRY: TStringField;
     Panel7: TPanel;
     Panel2: TPanel;
     Panel4: TPanel;
@@ -33,7 +31,6 @@ type
     Button1: TButton;
     Button3: TButton;
     tabJSON: TTabSheet;
-    mtUsersNAME: TStringField;
     Splitter1: TSplitter;
     Panel13: TPanel;
     Panel10: TPanel;
@@ -53,13 +50,15 @@ type
     Splitter2: TSplitter;
     tabEmptyDataSet: TTabSheet;
     Panel16: TPanel;
-    mtEmpty: TFDMemTable;
     dsEmpty: TDataSource;
     DBGrid3: TDBGrid;
     memoEmpty: TMemo;
     Panel17: TPanel;
     Button7: TButton;
     mmDataType: TMemo;
+    vtUsers: TVirtualTable;
+    vtUsersNAME: TWideStringField;
+    vtUsersCOUNTRY: TWideStringField;
     procedure Button2Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -82,23 +81,23 @@ uses System.TypInfo;
 
 procedure TFrmSamples.btnLoadJSONArrayClick(Sender: TObject);
 begin
-  if not(mtUsers.Active) then
-    mtUsers.Open;
-  mtUsers.EmptyDataSet;
-  mtUsers.LoadFromJSON(memoJSONArray.Lines.Text);
+  if not(vtUsers.Active) then
+    vtUsers.Open;
+  vtUsers.Clear;
+  vtUsers.LoadFromJSON(memoJSONArray.Lines.Text);
 end;
 
 procedure TFrmSamples.Button1Click(Sender: TObject);
 var
   LJSONArray: TJSONArray;
 begin
-  LJSONArray := mtUsers.ToJSONArray;
+  LJSONArray := vtUsers.ToJSONArray;
   try
-{$IF COMPILERVERSION < 33}
-    memoDataSet.Lines.Text := LJSONArray.ToJSON;
-{$ELSE}
-    memoDataSet.Lines.Text := LJSONArray.Format;
-{$ENDIF}
+    {$IF COMPILERVERSION < 33}
+        memoDataSet.Lines.Text := LJSONArray.ToJSON;
+    {$ELSE}
+        memoDataSet.Lines.Text := LJSONArray.Format;
+    {$ENDIF}
   finally
     LJSONArray.Free;
   end;
@@ -106,10 +105,10 @@ end;
 
 procedure TFrmSamples.Button2Click(Sender: TObject);
 begin
-  mtUsers.Append;
-  mtUsersNAME.AsString := edtName.Text;
-  mtUsersCOUNTRY.AsString := edtCountry.Text;
-  mtUsers.Post;
+  vtUsers.Append;
+  vtUsersNAME.AsString := edtName.Text;
+  vtUsersCOUNTRY.AsString := edtCountry.Text;
+  vtUsers.Post;
   edtName.Clear;
   edtCountry.Clear;
   edtName.SetFocus;
@@ -119,7 +118,7 @@ procedure TFrmSamples.Button3Click(Sender: TObject);
 var
   LJSONArray: TJSONArray;
 begin
-  LJSONArray := mtUsers.SaveStructure;
+  LJSONArray := vtUsers.SaveStructure;
   try
 {$IF COMPILERVERSION < 33}
     memoDataSet.Lines.Text := LJSONArray.ToJSON;
@@ -135,7 +134,7 @@ procedure TFrmSamples.Button4Click(Sender: TObject);
 var
   LJSONObject: TJSONObject;
 begin
-  LJSONObject := mtUsers.ToJSONObject;
+  LJSONObject := vtUsers.ToJSONObject;
   try
 {$IF COMPILERVERSION < 33}
     memoDataSet.Lines.Text := LJSONObject.ToJSON;
@@ -149,29 +148,29 @@ end;
 
 procedure TFrmSamples.Button5Click(Sender: TObject);
 begin
-  mtUsers.LoadFromJSON(memoJSONObject.Lines.Text);
+  vtUsers.LoadFromJSON(memoJSONObject.Lines.Text);
 end;
 
 procedure TFrmSamples.Button6Click(Sender: TObject);
 begin
-  if not(mtUsers.Active) or mtUsers.IsEmpty then
+  if not(vtUsers.Active) or vtUsers.IsEmpty then
     ShowMessage('No selected user to merge!')
   else
-    mtUsers.MergeFromJSONObject(memoMerge.Lines.Text);
+    vtUsers.MergeFromJSONObject(memoMerge.Lines.Text);
 end;
 
 procedure TFrmSamples.Button7Click(Sender: TObject);
 var
   LField: TField;
 begin
-  mtEmpty.LoadFromJSON(memoEmpty.Lines.Text);
-  for LField in mtEmpty.Fields do
+  vtUsers.LoadFromJSON(memoEmpty.Lines.Text);
+  for LField in vtUsers.Fields do
     mmDataType.Lines.Add(Format('Field: %s - %s', [LField.FieldName, GetEnumName(System.TypeInfo(TFieldType), Ord(LField.DataType))]));
 end;
 
 procedure TFrmSamples.FormCreate(Sender: TObject);
 begin
-  mtUsers.Open;
+  vtUsers.Open;
 end;
 
 end.
