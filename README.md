@@ -1,12 +1,33 @@
 <a href="https://github.com/viniciussanchez/dataset-serialize/blob/master/img/dataset-serialize.png">
   <img alt="DataSet-Serialize" height="120" src="https://github.com/viniciussanchez/dataset-serialize/blob/master/img/dataset-serialize.png">
 </a>  
+<a href="">
+  <img alt="unidac" height="120" src="https://origin2.cdn.componentsource.com/sites/default/files/styles/image_large/public/images/product_description/devart/universal-data-access-components-unidac/img_698751.png?itok=uq35O_eR">
+</a>  
 
-# DataSet Serialize for Delphi and Lazarus (FPC)
-![Delphi Supported Versions](https://img.shields.io/badge/Delphi%20Supported%20Versions-XE3..10.3%20Rio-blue.svg)
+
+# DataSet Serialize for Delphi, Lazarus and UniDAC (FPC)
+![Delphi Supported Versions](https://img.shields.io/badge/Delphi%20Supported%20Versions-XE3..Delphi%2011%20-blue.svg)
 ![Platforms](https://img.shields.io/badge/Supported%20platforms-Win32%20and%20Win64-red.svg)
 
 DataSet Serialize is a set of features to make working with JSON and DataSet simple. It has features such as exporting or importing records into a DataSet, validate if JSON has all required attributes (previously entered in the DataSet), exporting or importing the structure of DataSet fields in JSON format. In addition to managing nested JSON through master detail or using TDataSetField (you choose the way that suits you best). All this using class helpers, which makes it even simpler and easier to use.
+
+## About UniDAC and ftMemoField
+This repository provides UniDAC support for the existing project. Additionally, all demos have been revised for UniDAC. Support has been updated from Delphi 10.3 to Delphi 11. In addition, declaration properties have been added for fields of the MemoField type. You can take the following code as an example.
+
+``` pascal
+ JSONSerialize := TJSONSerialize.Create(JSONArray, True);
+ //default 255
+ JSONSerialize.StringFieldSize := 155;
+ JSONSerialize.MemoFields := ['memo_field1', 'memo_field2'];
+//default 4096
+ JSONSerialize.StringMemoFieldSize := 2000;
+ JSONSerialize.ToDataSet(dsVirtualTable.DataSet);
+``` 
+
+If your JSON data contains fields named `memo_field1` and `memo_field2` these fields will be stored as type `ftMemoField`. This way, you can benefit from both memory optimization and use long data without truncation. In line with this, a few modifications were made in the project. The JSON field names were previously always in uppercase, and this behavior has been updated to use lowercase. As seen in the example code, normally static 
+`FieldSize` values have been transformed into properties.
+
  
 ## Prerequisites for Delphi
  * `[Optional]` For ease I recommend using the [**Boss**](https://github.com/HashLoad/boss) (Dependency Manager for Delphi) for installation, simply by running the command below on a terminal (Windows PowerShell for example):
