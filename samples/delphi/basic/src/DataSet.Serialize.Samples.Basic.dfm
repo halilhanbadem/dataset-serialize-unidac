@@ -202,6 +202,18 @@ object FrmSamples: TFrmSamples
             TitleFont.Height = -11
             TitleFont.Name = 'Tahoma'
             TitleFont.Style = []
+            Columns = <
+              item
+                Expanded = False
+                FieldName = 'NAME'
+                Width = 226
+                Visible = True
+              end
+              item
+                Expanded = False
+                FieldName = 'COUNTRY'
+                Visible = True
+              end>
           end
           object Panel6: TPanel
             Left = 0
