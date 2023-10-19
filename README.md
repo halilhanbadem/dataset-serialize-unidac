@@ -22,7 +22,6 @@ This repository provides UniDAC support for the existing project. Additionally, 
  JSONSerialize.MemoFields := ['memo_field1', 'memo_field2'];
 //default 4096
  JSONSerialize.StringMemoFieldSize := 2000;
- JSONSerialize
  JSONSerialize.ToDataSet(dsVirtualTable.DataSet);
 ``` 
 
